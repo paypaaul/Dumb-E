@@ -1,7 +1,7 @@
 #include "robot_config.h"
 
 /*
- * Geometry measured on hardware/cad/robot.step (TCP = finger tips) and 20:1 cycloidal drives.
+ * Geometry measured on the author's CAD model (not in the repo) (TCP = finger tips) and 20:1 cycloidal drives.
  * Microsteps, limits, speeds and the park pose are placeholders to verify on the arm.
  */
 const robot_config_t robot_default_config = {

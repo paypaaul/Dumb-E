@@ -1,7 +1,7 @@
 # Dumb-E
 
 5-DOF 3D-printed arm (20:1 cycloidal joints: base yaw, shoulder, elbow, forearm roll, wrist pitch; geometry
-from `hardware/cad/robot.step`, see `docs/kinematics.md`) + servo gripper. ESP32 DOIT DevKit V1 (WROOM-32) on PCB `test-dumbev2`,
+from the author's CAD, see `docs/kinematics.md`) + servo gripper. ESP32 DOIT DevKit V1 (WROOM-32) on PCB `test-dumbev2`,
 TMC2209 standalone (STEP/DIR/EN only). Firmware in C, **ESP-IDF v6.0.3**, target `esp32`.
 
 ## Layout
@@ -28,5 +28,6 @@ CI (`.github/workflows/ci.yml`) runs host tests + firmware build.
 - Protocol responses: one line `ok ...` / `err <code> <msg>`, written in a single write (`out()` in comms.c).
   Update `docs/protocol.md` when commands change.
 - No NVS/flash writes while moving.
+- CAD files are not in the repo (cycloidals derived from purchased SweepDynamics models): never commit them.
 - Pins only in `components/board`; mechanical values only in `robot_config.c` (currently placeholders).
 - Details: `docs/architecture.md`, `docs/roadmap.md` (next phases).

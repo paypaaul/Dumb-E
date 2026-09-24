@@ -1,6 +1,6 @@
 /*
  * Mechanical configuration of the arm. Human-friendly units (mm, degrees) — converted at init.
- * Geometry and gear ratio come from hardware/cad/robot.step; limits, speeds, microsteps and the park pose are
+ * Geometry and gear ratio come from the author's CAD model (not in the repo); limits, speeds, microsteps and the park pose are
  * still PLACEHOLDERS to verify on the real arm (see docs/kinematics.md).
  */
 #pragma once

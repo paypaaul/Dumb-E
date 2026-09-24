@@ -4,7 +4,8 @@ Parti meccaniche (stampate in 3D), elettronica e distinta base.
 
 - `pcb/` — PCB `test-dumbev2` (EasyEDA Pro): progetto, netlist, schematico PDF, Gerber, DXF.
   **Leggi [pcb/REVIEW.md](pcb/REVIEW.md)** prima di alimentarla: contiene pinout, problemi e interventi.
-- `cad/robot.step` — modello completo del braccio (fonte della geometria in `docs/kinematics.md`).
+- `cad/` — **i file CAD non sono nella repo** (ignorati da git): i riduttori cicloidali derivano da modelli
+  acquistati da SweepDynamics e modificati, non ridistribuibili. Le misure ricavate sono in `docs/kinematics.md`.
 - [BOM.md](BOM.md) — distinta base (bozza).
 
 ## Giunti

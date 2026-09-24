@@ -20,3 +20,9 @@ build-qemu/
 __pycache__/
 *.pyc
 .venv/
+
+# CAD models: the cycloidal drives are derived from purchased SweepDynamics models (not redistributable)
+hardware/cad/*.step
+hardware/cad/*.stp
+hardware/cad/*.f3d
+hardware/cad/*.stl

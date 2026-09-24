@@ -6,7 +6,7 @@
 
 #define DEG(x) ((float)(x) * 3.14159265358979323846f / 180.0f)
 
-/* Geometry measured on hardware/cad/robot.step. */
+/* Geometry measured on the author's CAD model (not in the repo). */
 static kin_model_t model;
 
 void setUp(void)

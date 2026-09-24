@@ -1,6 +1,7 @@
 # Cinematica
 
-Geometria misurata su `hardware/cad/robot.step`. Codice: `firmware/components/kinematics`, test:
+Geometria misurata sul modello CAD dell'autore (non incluso nella repo: i cicloidali derivano da modelli
+acquistati da SweepDynamics). Codice: `firmware/components/kinematics`, test:
 `firmware/test/host/test_kinematics.c`.
 
 ## Struttura

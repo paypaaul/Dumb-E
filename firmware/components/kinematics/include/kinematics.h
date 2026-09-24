@@ -5,7 +5,7 @@
  * Pure C, no ESP-IDF dependencies: compiled and unit-tested on the host.
  * Units: millimetres and radians everywhere. Conversion to degrees happens only at the user interface.
  *
- * Geometry (from hardware/cad/robot.step, see docs/kinematics.md):
+ * Geometry (from the author's CAD model (not in the repo), see docs/kinematics.md):
  *  - Base frame: z up, x forward when q1 = 0, q1 positive counter-clockwise seen from above.
  *  - J2 and J3 axes are horizontal and perpendicular to the arm plane; the lateral offsets of the upper arm
  *    cancel at the elbow, so the forearm axis always lies in the vertical plane of the base (azimuth q1).

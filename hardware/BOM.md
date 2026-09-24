@@ -56,13 +56,14 @@ La presa C14 con fusibile è sul lato rete (230 V): protegge l'alimentatore, non
 
 | Q.tà | Componente | Note |
 |---|---|---|
-| 5 | NEMA17 (1,8°) | nel CAD: 4 standard + 1 pancake (J4); modello e corrente **TBD** |
+| 4 | NEMA17 (1,8°) standard | J1…J4; modello e corrente **TBD** |
+| 1 | NEMA17 (1,8°) pancake | J5 pitch polso; modello e corrente **TBD** |
 | 1 | Servo gripper (gripper a 3 dita con ingranaggio) | modello **TBD** |
 
 ## Meccanica
 
 | Q.tà | Componente | Note |
 |---|---|---|
-| 5 | Riduttore cicloidale stampato 20:1 | corona a 20 perni Ø3 mm, 2 dischi sfasati (dal CAD) |
-| TBD | Cuscinetti, rulli/perni, viteria | **TBD** dal CAD |
+| 5 | Riduttore cicloidale stampato 20:1 | modelli SweepDynamics (acquistati) modificati |
+| — | Cuscinetti, perni, viteria dei cicloidali | dalla BOM di SweepDynamics |
 | TBD | Filamento | materiale **TBD** (PETG/ASA consigliati vicino ai motori) |
