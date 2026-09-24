@@ -1,0 +1,24 @@
+menu "Dumb-E robot"
+
+    config DUMBE_ESTOP_ENABLE
+        bool "Enable e-stop input"
+        default n
+        help
+            Enable only when the e-stop circuit is wired (normally-closed button to GND with an external
+            pull-up): an unconnected input-only pin floats and would trigger random stops.
+
+    config DUMBE_ESTOP_GPIO
+        int "E-stop GPIO"
+        depends on DUMBE_ESTOP_ENABLE
+        range 0 39
+        default 34
+
+    config DUMBE_ESTOP_ACTIVE_HIGH
+        bool "E-stop is active when the input is high"
+        depends on DUMBE_ESTOP_ENABLE
+        default y
+        help
+            With a normally-closed button to GND and a pull-up, the input goes high when the button is
+            pressed or the wire breaks.
+
+endmenu

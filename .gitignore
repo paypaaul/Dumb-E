@@ -6,6 +6,7 @@ managed_components/
 
 # Host test builds
 build-host/
+build-qemu/
 
 # Editors / OS
 .DS_Store

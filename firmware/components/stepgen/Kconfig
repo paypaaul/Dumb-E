@@ -1,0 +1,38 @@
+menu "Dumb-E step generator"
+
+    config DUMBE_STEPGEN_TICK_HZ
+        int "Step tick frequency [Hz]"
+        range 1000 100000
+        default 40000
+        help
+            Frequency of the step interrupt. It is also the maximum step rate of one axis.
+            Must divide 10 MHz.
+
+    config DUMBE_STEPGEN_TICKS_PER_SEGMENT
+        int "Ticks per motion segment"
+        range 4 1000
+        default 40
+        help
+            Length of one motion segment in ticks. With the defaults a segment lasts 1 ms,
+            i.e. the motion planner runs at 1 kHz.
+
+    config DUMBE_STEPGEN_MIN_PULSE_NS
+        int "Minimum STEP pulse width [ns]"
+        range 100 10000
+        default 1000
+        help
+            TMC2209 needs about 100 ns; the default leaves a wide margin for level shifters.
+
+    config DUMBE_STEPGEN_INTR_PRIORITY
+        int "Step interrupt priority"
+        range 1 3
+        default 3
+
+    config DUMBE_STEPGEN_DEBUG_GPIO
+        int "Debug GPIO (-1 = disabled)"
+        range -1 33
+        default -1
+        help
+            When set, this GPIO is high while the step ISR runs: measure it with a logic analyzer.
+
+endmenu

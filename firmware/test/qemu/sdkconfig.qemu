@@ -1,0 +1,6 @@
+# Overlay for QEMU builds (see smoke_test.py and docs/bringup.md):
+# - the emulator has no WiFi radio;
+# - the emulated step ISR is far slower than real hardware, so the tick is lowered to 5 kHz.
+CONFIG_DUMBE_NET_ENABLE=n
+CONFIG_DUMBE_STEPGEN_TICK_HZ=5000
+CONFIG_DUMBE_STEPGEN_TICKS_PER_SEGMENT=5

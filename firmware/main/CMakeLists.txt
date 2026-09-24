@@ -1,3 +1,4 @@
 idf_component_register(SRCS "main.c"
                        INCLUDE_DIRS ""
-                       REQUIRES stepper_driver wifi_connection robot_kinematics nvs_flash)
+                       PRIV_REQUIRES robot net comms nvs_flash esp_event log)
+target_compile_options(${COMPONENT_LIB} PRIVATE -Wall -Wextra -Werror)
