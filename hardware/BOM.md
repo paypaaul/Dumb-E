@@ -11,7 +11,7 @@ Stato: bozza. **TBD** = dato da completare. Le quantità del PCB vengono dalla n
 | C1…C6 | 6 | Elettrolitico 470 µF 50 V (passo 5 mm, Ø10) | anche per U6 se lo monti |
 | U7, U9 | 2 | Morsetto a vite KF128L-5.0-2P | alimentare **entrambi** a 24 V |
 | H1…H6 | 6 | Connettore A2502WV-04P2 (motori) | + 6 connettori volanti A2502-04Y e contatti |
-| CN1…CN5 | 5 | Connettore A2502-WV02 (+5V/GND) | CN5 = ingresso 5 V |
+| CN1…CN5 | 5 | Connettore A2502-WV02 (+5V/GND) | CN5 = ingresso 5 V; CN1…CN4 = ventole |
 | H7, H8 | 2 | Header 3 pin 2,54 mm (servo) | |
 | H9, H10 | 2 | Header 3 pin 2,54 mm + jumper | MS2 / MS1 |
 | H11, H12 | 2 | Header 4 pin 2,54 mm | espansioni |
@@ -26,7 +26,7 @@ Stato: bozza. **TBD** = dato da completare. Le quantità del PCB vengono dalla n
 | 1 | Alimentatore switching 24 V 15 A 360 W (ingresso 110/220 V selezionabile) | https://amzn.eu/d/03CJn3oo | **metti il selettore su 220 V prima di collegarlo**; protezioni: sovratensione, sovraccarico, corto |
 | 1 | Step-down DC-DC 8–40 V → 5 V 5 A (25 W), sincrono | https://amzn.eu/d/0fcRmi94 | ingresso rosso/nero, uscita giallo/nero → CN5; non usarlo a lungo vicino ai 5 A |
 | 1 | Presa IEC320 C14 con interruttore luminoso e portafusibile (6 A 250 V AC), cavi 18 AWG | https://amzn.eu/d/01dDmsnM | lato **rete 230 V**; montare il fusibile **F5A**, non il 10 A (vedi sotto) |
-| TBD | Ventole 5 V per i TMC2209 | TBD | dimensione e corrente **TBD** |
+| 4 | Ventola 40×40×10 mm (4010) 5 V | Temu | ~0,1–0,2 A ciascuna (verifica l'etichetta); sui connettori CN1…CN4, sempre accese |
 | 1 | Portafusibile + fusibile 5 A sulla linea 24 V motori | da scegliere | consigliato (vedi stima sotto) |
 | 1 | Elettrolitico 470–1000 µF 10 V vicino ai servo | da scegliere | consigliato |
 
@@ -35,7 +35,7 @@ Stato: bozza. **TBD** = dato da completare. Le quantità del PCB vengono dalla n
 | Carico | Stima |
 |---|---|
 | 5 × NEMA17 (corrente assorbita dai 24 V, non di fase) | ~0,3–0,7 A ciascuno → ~3 A di picco |
-| 5 V: ESP32 ~0,25 A + servo gripper (stallo fino a ~2,5 A) + ventole | ~3 A di picco → 60 % dello step-down (5 A) ✓ |
+| 5 V: ESP32 ~0,25 A + servo gripper (stallo fino a ~2,5 A) + 4 ventole 4010 (~0,4–0,8 A) | ~3,5 A di picco → 70 % dello step-down (5 A) ✓; a regime ~1 A |
 | **Totale lato 24 V** | **~4 A di picco su 15 A disponibili** ✓ |
 
 L'alimentatore è ampiamente sovradimensionato: va bene, ma proprio per questo può erogare 15 A dentro un guasto
