@@ -169,7 +169,7 @@ static int cmd_status(int argc, char **argv)
     }
     if (st.pose_valid) {
         out(" tcp=%.2f,%.2f,%.2f,%.2f,%.2f", (double)st.pose.x, (double)st.pose.y, (double)st.pose.z,
-               (double)DEG(st.pose.pitch), (double)DEG(st.pose.roll));
+               (double)DEG(st.pose.pitch), (double)DEG(st.pose.yaw));
     } else {
         out(" tcp=na");
     }
@@ -190,8 +190,8 @@ static int cmd_config(int argc, char **argv)
     (void)argc;
     (void)argv;
     const robot_config_t *c = robot_get_config();
-    out("# geometry d1=%.1f a1=%.1f a2=%.1f a3=%.1f d5=%.1f mm\n", (double)c->d1_mm, (double)c->a1_mm,
-           (double)c->a2_mm, (double)c->a3_mm, (double)c->d5_mm);
+    out("# geometry d1=%.1f a2=%.1f a3=%.1f tool_offset=%.1f tool_length=%.1f mm\n", (double)c->d1_mm,
+        (double)c->a2_mm, (double)c->a3_mm, (double)c->tool_offset_mm, (double)c->tool_length_mm);
     for (int i = 0; i < KIN_NUM_JOINTS; i++) {
         const robot_joint_config_t *j = &c->joints[i];
         out("# J%d %-11s %" PRIu32 "x%" PRIu32 "x%.2f%s limits=[%.1f,%.1f] v=%.1f a=%.1f park=%.1f\n", i + 1,
@@ -258,9 +258,9 @@ static int cmd_movep(int argc, char **argv)
     float v[5];
     move_opts_t o;
     if (!parse_move_args(argc, argv, 5, v, &o)) {
-        return reply_syntax("movep x y z pitch roll [-e up|down] [-v pct] [-a pct]");
+        return reply_syntax("movep x y z pitch yaw [-e up|down] [-v pct] [-a pct]");
     }
-    const kin_pose_t pose = {.x = v[0], .y = v[1], .z = v[2], .pitch = RAD(v[3]), .roll = RAD(v[4])};
+    const kin_pose_t pose = {.x = v[0], .y = v[1], .z = v[2], .pitch = RAD(v[3]), .yaw = RAD(v[4])};
     int bad = -1;
     const robot_err_t err = robot_move_pose(&pose, o.elbow, o.speed_pct, o.accel_pct, &bad);
     if (err == ROBOT_ERR_LIMIT && bad >= 0) {
@@ -323,8 +323,8 @@ static int cmd_fk(int argc, char **argv)
     }
     kin_pose_t p;
     kin_forward(robot_get_model(), q, &p);
-    out("ok x=%.3f y=%.3f z=%.3f pitch=%.3f roll=%.3f", (double)p.x, (double)p.y, (double)p.z,
-           (double)DEG(p.pitch), (double)DEG(p.roll));
+    out("ok x=%.3f y=%.3f z=%.3f pitch=%.3f yaw=%.3f", (double)p.x, (double)p.y, (double)p.z,
+        (double)DEG(p.pitch), (double)DEG(p.yaw));
     return 0;
 }
 
@@ -333,15 +333,22 @@ static int cmd_ik(int argc, char **argv)
     float v[5];
     move_opts_t o;
     if (!parse_move_args(argc, argv, 5, v, &o)) {
-        return reply_syntax("ik x y z pitch roll [-e up|down]");
+        return reply_syntax("ik x y z pitch yaw [-e up|down]");
     }
-    const kin_pose_t pose = {.x = v[0], .y = v[1], .z = v[2], .pitch = RAD(v[3]), .roll = RAD(v[4])};
+    const kin_pose_t pose = {.x = v[0], .y = v[1], .z = v[2], .pitch = RAD(v[3]), .yaw = RAD(v[4])};
+    robot_status_t st;
+    robot_get_status(&st);
+    float seed[KIN_NUM_JOINTS];
+    for (int i = 0; i < KIN_NUM_JOINTS; i++) {
+        seed[i] = RAD(st.q_deg[i]);
+    }
+    const kin_ik_options_t opts = {.elbow = o.elbow, .seed = seed};
     float q[KIN_NUM_JOINTS];
     int bad = -1;
-    const kin_status_t ks = kin_inverse(robot_get_model(), &pose, o.elbow, q, &bad);
+    const kin_status_t ks = kin_inverse(robot_get_model(), &pose, &opts, q, &bad);
     if (ks != KIN_OK && ks != KIN_ERR_JOINT_LIMIT) {
-        out("err %d %s", ks == KIN_ERR_SINGULAR ? ROBOT_ERR_SINGULAR : ROBOT_ERR_UNREACHABLE,
-               kin_status_str(ks));
+        out("err %d %s", ks == KIN_ERR_NO_CONVERGENCE ? ROBOT_ERR_SINGULAR : ROBOT_ERR_UNREACHABLE,
+            kin_status_str(ks));
         return 0;
     }
     for (int i = 0; i < KIN_NUM_JOINTS; i++) {
@@ -421,14 +428,15 @@ static const command_t s_commands[] = {
     {"disable", "Disable the stepper drivers (the arm may fall!)", cmd_disable},
     {"zero", "zero [q1..q5]: declare current joint angles in deg (default: park pose)", cmd_zero},
     {"movej", "movej q1..q5 [-v pct] [-a pct]: synchronised joint move (deg)", cmd_movej},
-    {"movep", "movep x y z pitch roll [-e up|down] [-v pct] [-a pct]: move to pose (mm, deg)", cmd_movep},
+    {"movep", "movep x y z pitch yaw [-e up|down] [-v pct] [-a pct]: TCP position (mm) + approach (deg)",
+     cmd_movep},
     {"jog", "jog joint(1-5) delta_deg [-v pct]: relative joint move", cmd_jog},
     {"park", "park [-v pct]: move to the park pose", cmd_park},
     {"stop", "Controlled stop, drops queued moves", cmd_stop},
     {"estop", "Immediate stop (latched until reset)", cmd_estop},
     {"reset", "Clear the e-stop latch", cmd_reset},
     {"fk", "fk q1..q5: forward kinematics (deg -> mm, deg)", cmd_fk},
-    {"ik", "ik x y z pitch roll [-e up|down]: inverse kinematics", cmd_ik},
+    {"ik", "ik x y z pitch yaw [-e up|down]: inverse kinematics (seeded with the current pose)", cmd_ik},
     {"grip", "grip open|close|off|<0-100>", cmd_grip},
     {"wifi", "wifi [ssid [password]]: status or set credentials", cmd_wifi},
 };

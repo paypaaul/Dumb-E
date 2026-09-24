@@ -42,13 +42,13 @@ Stato: bozza. **TBD** = dato da completare. Le quantità del PCB vengono dalla n
 
 | Q.tà | Componente | Note |
 |---|---|---|
-| 5 | NEMA17 (1,8°) | modello, lunghezza e corrente **TBD** |
-| 1 | Servo gripper | modello **TBD** |
+| 5 | NEMA17 (1,8°) | nel CAD: 4 standard + 1 pancake (J4); modello e corrente **TBD** |
+| 1 | Servo gripper (gripper a 3 dita con ingranaggio) | modello **TBD** |
 
 ## Meccanica
 
 | Q.tà | Componente | Note |
 |---|---|---|
-| 5 | Riduttore cicloidale stampato | rapporto per giunto **TBD** |
+| 5 | Riduttore cicloidale stampato 20:1 | corona a 20 perni Ø3 mm, 2 dischi sfasati (dal CAD) |
 | TBD | Cuscinetti, rulli/perni, viteria | **TBD** dal CAD |
 | TBD | Filamento | materiale **TBD** (PETG/ASA consigliati vicino ai motori) |

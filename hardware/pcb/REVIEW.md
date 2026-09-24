@@ -34,8 +34,8 @@ funzioni essenziali: il pull-up di EN, per esempio, deve essere una resistenza a
 | U1 STEP / DIR | 26 / 27 | J1 base | |
 | U2 STEP / DIR | **12** / 13 | J2 spalla | GPIO12 è strapping (vedi problema 3) |
 | U3 STEP / DIR | 32 / 33 | J3 gomito | |
-| U4 STEP / DIR | 4 / 16 | J4 pitch polso | GPIO16 non esiste sulle DevKit WROVER |
-| U5 STEP / DIR | 18 / 19 | J5 roll polso | |
+| U4 STEP / DIR | 4 / 16 | J4 roll avambraccio | GPIO16 non esiste sulle DevKit WROVER |
+| U5 STEP / DIR | 18 / 19 | J5 pitch polso | |
 | U6 STEP / DIR | **35 / 34** | — | **inutilizzabile**: pin solo ingresso |
 | EN (tutti) + gate Q3 | 25 | | nessun pull-up (problema 2); Q3/LED non montati |
 | Servo H7 / H8 | 23 / 22 | gripper su H7 | |

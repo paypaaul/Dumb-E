@@ -1,79 +1,90 @@
 # Cinematica
 
-## Modello
+Geometria misurata su `hardware/cad/robot.step`. Codice: `firmware/components/kinematics`, test:
+`firmware/test/host/test_kinematics.c`.
 
-Braccio a 5 gradi di libertà: base (yaw), spalla, gomito, pitch del polso, roll del polso. Tutti gli assi di
-pitch sono paralleli e il piano del braccio contiene l'asse della base (**nessun offset laterale**: da
-verificare sul CAD).
+## Struttura
+
+| Giunto | Tipo | Asse |
+|---|---|---|
+| J1 base | yaw | verticale |
+| J2 spalla | pitch | orizzontale, perpendicolare al piano del braccio |
+| J3 gomito | pitch | parallelo a J2 |
+| J4 avambraccio | **roll** | asse dell'avambraccio |
+| J5 polso | pitch | perpendicolare all'avambraccio, incontra l'asse di J4 nel **centro polso W** |
+
+I link sono montati di fianco ai giunti: il braccio è spostato di 67,4 mm lungo l'asse della spalla e l'avambraccio
+torna in asse al gomito, quindi l'avambraccio resta sempre nel piano verticale della base. Il gripper (3 dita) è
+spostato di **67,4 mm lungo l'asse di J5** e sporge di **155,4 mm** oltre il polso.
 
 ```
-            d5 (polso → TCP)
-   a3        ●──────▶ TCP
- ●──────────● J4 (pitch)  J5 (roll attorno all'asse di approccio)
- │ J3 (gomito)
- │ a2
- ● J2 (spalla)
- │ a1 (offset orizzontale, spesso 0)
- │ d1
-═╧═ J1 (base)
+            TCP (punta delle dita)
+             │ 155,4
+   67,4 ─────● asse J5 (pitch polso)        W = centro polso
+             │ J4 roll attorno all'avambraccio
+             │ a3 = 151,8
+             ● J3 (gomito)
+             │ a2 = 159,2
+             ● J2 (spalla)
+             │ d1 = 104,8
+            ═╧═ J1 (base)
 ```
 
-| Parametro | Significato |
-|---|---|
-| `d1` | altezza dal piano di base all'asse della spalla |
-| `a1` | distanza orizzontale dall'asse della base all'asse della spalla |
-| `a2` | asse spalla → asse gomito |
-| `a3` | asse gomito → asse di pitch del polso |
-| `d5` | asse di pitch del polso → punto utensile (TCP), lungo l'asse di approccio |
+| Parametro | Valore | Significato |
+|---|---|---|
+| `d1` | 104,8 mm | piano di base → asse spalla |
+| `a2` | 159,2 mm | asse spalla → asse gomito |
+| `a3` | 151,8 mm | asse gomito → centro polso |
+| `tool_offset` | 67,4 mm | TCP lungo l'asse di J5 |
+| `tool_length` | 155,4 mm | TCP lungo la direzione di avvicinamento (punta delle dita) |
 
 ## Convenzioni
 
-- Terna di base: z verso l'alto, x in avanti con J1 = 0; J1 positivo antiorario visto dall'alto.
-- **q2** è l'angolo del braccio rispetto all'orizzontale (positivo = verso l'alto).
-- **q3** e **q4** sono relativi al link precedente (0 = allineati; positivo = alza il link successivo).
-- **pitch** del TCP = q2 + q3 + q4 (0 = orizzontale, −90° = utensile verso il basso).
-- **roll** = q5.
-- Gomito **su**: il gomito sta sopra la retta spalla–polso (q3 ≤ 0). È il default. Il prototipo originale
-  chiamava "gomito in su" la soluzione opposta.
+- Terna di base: z in alto, x in avanti con J1 = 0; J1 positivo antiorario visto dall'alto.
+- **q2** = angolo del braccio rispetto all'orizzontale (positivo in su). **q3** relativo al braccio
+  (0 = dritto, positivo alza l'avambraccio).
+- **q4** = roll dell'avambraccio; con q4 = 0 l'asse di J5 è la normale al piano del braccio (lato del gripper).
+- **q5** = pitch del polso; con q4 = q5 = 0 la pinza è allineata all'avambraccio.
+- Posa del CAD (braccio dritto in verticale) = `0 90 0 0 0` → TCP a (0; 67,4; 571,2).
+- Gomito **su** = gomito sopra la retta spalla–polso (q3 ≤ 0), default.
 
-Una posa raggiungibile da un braccio a 5 DOF ha l'asse di approccio nel piano del braccio: si specifica con
-`x y z pitch roll` (lo yaw è implicito, `atan2(y, x)`).
+## Cosa si controlla
 
-## Cinematica inversa (forma chiusa)
+Con 5 giunti si controllano la **posizione del TCP** e la **direzione di avvicinamento** della pinza
+(`pitch`: −90° = verso il basso; `yaw`: azimut). La rotazione della pinza attorno al proprio asse ne è una
+conseguenza (il gripper a 3 dita è quasi simmetrico).
 
-1. `q1 = atan2(y, x)` (singolare se il TCP è sull'asse della base).
-2. Centro del polso nel piano del braccio: `rw = r − a1 − d5·cos(pitch)`, `zw = z − d1 − d5·sin(pitch)`.
-3. Due link (a2, a3) verso (rw, zw): `cos q3 = (rw² + zw² − a2² − a3²) / (2·a2·a3)`, segno di `sin q3` scelto
-   dalla configurazione del gomito.
-4. `q2 = atan2(zw, rw) − atan2(a3·sin q3, a2 + a3·cos q3)`, `q4 = pitch − q2 − q3`, `q5 = roll`.
-5. Verifica dei limiti dei giunti.
+## Cinematica inversa
 
-Test su PC: `firmware/test/host/test_kinematics.c` (andata e ritorno FK↔IK su griglia per entrambe le
-configurazioni, casi noti, irraggiungibile, singolarità, limiti).
+1. Il centro polso W sta nel piano del braccio: da W si ottengono q1 e (q2, q3) in forma chiusa (2 link).
+2. Dalla direzione di avvicinamento nel piano del braccio si ottengono q4 e q5 in forma chiusa (due soluzioni:
+   si sceglie quella con q4 più vicino alla posizione attuale).
+3. W dipende da q4 per via dell'offset di 67,4 mm: si risolve con Newton sul centro polso, partendo dal centro
+   polso della posizione attuale; se fallisce (vicino a singolarità) raffinamento ai minimi quadrati sui giunti.
+4. Il risultato è sempre verificato con la cinematica diretta.
+
+Prestazioni (test su PC): 100 % delle pose raggiungibili risolte partendo dalla posizione attuale, stessa
+configurazione ritrovata nel 99,7 % dei casi; da zero risolve tutti i punti raggiungibili con pinza verso il basso.
+
+Singolarità: braccio tutto disteso (q3 ≈ 0), centro polso sull'asse della base, polso dritto (q5 ≈ 0, q4
+indeterminato: viene mantenuto quello attuale).
 
 ## Dai giunti ai motori
 
 ```
-passi_per_rad = passi_giro × microstep × rapporto / 2π
-passi = round(± q · passi_per_rad)          (segno: `invert`)
+passi_per_rad = passi_giro × microstep × rapporto / 2π      (200 × 16 × 20 = 64000 passi/giro = 177,8 passi/°)
+passi = round(± q · passi_per_rad)                           (segno: `invert`)
 ```
 
-Il riferimento (`zero`) dichiara che la posizione attuale corrisponde alla posa di parcheggio.
+## Parametri ancora da verificare
 
-## Parametri da misurare
+In `firmware/components/robot/robot_config.c`:
 
-Tutti in `firmware/components/robot/robot_config.c`. I valori attuali sono segnaposto.
-
-| Parametro | Valore attuale | Da misurare/decidere |
+| Parametro | Valore attuale | Da fare |
 |---|---|---|
-| d1, a1, a2, a3, d5 [mm] | 100, 0, 150, 150, 60 | dal CAD (assi dei giunti) |
-| passi/giro | 200 | 200 per motori da 1,8° |
-| microstep | 16 | come impostato dai jumper MS1/MS2 del TMC2209 |
-| rapporto | 40 (per tutti) | rapporto reale di ogni cicloidale (e cinghie) |
+| microstep | 16 | come impostato dai jumper MS1/MS2 (H10/H9) |
+| rapporto | 20:1 tutti i giunti | confermato dall'autore |
 | invert | no | se un giunto va al contrario |
-| limiti [°] | vedi file | dai finecorsa meccanici, con margine |
+| limiti [°] | vedi file | dai fine corsa meccanici, con margine |
 | v max, a max | 45–60 °/s, 90–120 °/s² | partire bassi e salire con le prove |
 | posa di parcheggio [°] | 0, 90, −90, 0, 0 | una posa stabile e riproducibile (dima o tacche) |
-
-Nota: con 40.000 passi/s al massimo e 355,6 passi/° (200×16×40) la velocità massima di un giunto è ~112 °/s;
-il firmware limita comunque al 90 % e segnala i limiti configurati troppo alti.

@@ -22,7 +22,7 @@ typedef struct {
     int dir;
 } board_axis_pins_t;
 
-/* J1 base, J2 shoulder, J3 elbow, J4 wrist pitch, J5 wrist roll. */
+/* J1 base, J2 shoulder, J3 elbow, J4 forearm roll, J5 wrist pitch. */
 extern const board_axis_pins_t board_axis_pins[BOARD_NUM_AXES];
 
 #define BOARD_PIN_DRIVER_EN 25 /* shared TMC2209 EN (active low) + Q3 "drivers enabled" LEDs; add 10k pull-up */

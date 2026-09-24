@@ -1,13 +1,13 @@
 # Dumb-E
 
-Braccio robotico a 5 gradi di libertà + gripper, stampato in 3D, con riduttori cicloidali su ogni giunto.
+Braccio robotico a 5 gradi di libertà + gripper a 3 dita, stampato in 3D, con riduttori cicloidali 20:1 su ogni giunto.
 
 - **Controller**: ESP32 (DevKit WROOM-32), firmware in C su ESP-IDF v6.0.3
 - **Attuatori**: NEMA17 + TMC2209 (standalone, STEP/DIR), servo per il gripper
-- **Giunti**: J1 base (yaw), J2 spalla, J3 gomito, J4 pitch polso, J5 roll polso
+- **Giunti**: J1 base (yaw), J2 spalla, J3 gomito, J4 roll avambraccio, J5 pitch polso
 
-> Stato: fondamenta del firmware (Fase 1). Geometria, rapporti di riduzione e limiti in
-> `firmware/components/robot/robot_config.c` sono **segnaposto** da misurare. La mappa pin segue il PCB
+> Stato: fondamenta del firmware (Fase 1). Geometria e rapporti vengono dal CAD; microstep, limiti e posa di
+> parcheggio in `firmware/components/robot/robot_config.c` sono ancora **segnaposto** da verificare. La mappa pin segue il PCB
 > `test-dumbev2`: prima di alimentarlo leggi [hardware/pcb/REVIEW.md](hardware/pcb/REVIEW.md).
 
 ## Struttura
@@ -26,7 +26,7 @@ firmware/          progetto ESP-IDF
     net/           WiFi (credenziali in NVS)
   test/host/       unit test su PC (CMake + Unity)
   test/qemu/       smoke test end-to-end in QEMU
-hardware/          PCB, CAD/STL, BOM
+hardware/          PCB, CAD (STEP), BOM
 tools/             strumenti lato PC
 docs/              architettura, protocollo, cinematica, bring-up, roadmap, code review
 ```
@@ -67,8 +67,8 @@ Dal monitor seriale (`idf.py monitor`, prompt `dumbe>`):
 ```
 enable                      # driver alimentati, braccio in coppia
 zero                        # il braccio è nella posa di parcheggio: riferimento impostato
-movej 10 80 -60 20 45       # giunti in gradi
-movep 200 0 150 -90 0       # TCP in mm, pitch e roll in gradi
+movej 10 80 -60 20 45        # giunti in gradi
+movep 250 0 60 -90 0         # TCP in mm, direzione pinza: pitch -90 = verso il basso, yaw
 grip close
 park
 status

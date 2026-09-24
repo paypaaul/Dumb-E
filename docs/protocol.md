@@ -23,14 +23,14 @@ mano sia per un client (es. script Python con pyserial).
 | `enable` / `disable` | alimenta / spegne i driver (`disable` perde il riferimento: il braccio può cadere) |
 | `zero [q1..q5]` | dichiara gli angoli attuali (default: posa di parcheggio) |
 | `movej q1 q2 q3 q4 q5 [-v %] [-a %]` | movimento sincronizzato ai giunti |
-| `movep x y z pitch roll [-e up\|down] [-v %] [-a %]` | IK + movimento ai giunti verso una posa del TCP |
+| `movep x y z pitch yaw [-e up\|down] [-v %] [-a %]` | IK + movimento ai giunti: TCP in mm, direzione di avvicinamento in gradi (pitch −90 = verso il basso) |
 | `jog giunto(1-5) delta [-v %]` | movimento relativo di un giunto |
 | `park [-v %]` | torna alla posa di parcheggio |
 | `stop` | arresto controllato, scarta i comandi in coda |
 | `estop` | arresto immediato, bloccato fino a `reset` |
 | `reset` | sblocca l'e-stop (il riferimento resta: verifica la posizione) |
 | `fk q1..q5` | cinematica diretta (non muove) |
-| `ik x y z pitch roll [-e up\|down]` | cinematica inversa (non muove) |
+| `ik x y z pitch yaw [-e up\|down]` | cinematica inversa a partire dalla posa attuale (non muove) |
 | `grip open\|close\|off\|<0-100>` | gripper; `off` smette di pilotare il servo |
 | `wifi [ssid [password]]` | stato WiFi, oppure salva le credenziali (solo da fermo) |
 
@@ -40,7 +40,7 @@ Default: `-v 50 -a 50`, `-e up`. I movimenti vengono accodati (fino a 8) ed eseg
 
 ```
 ok state=READY ref=1 moving=0 estop_in=0 queue=0 q=0.000,90.000,-90.000,0.000,0.000
-   steps=0,32000,-32000,0,0 tcp=210.00,0.00,250.00,0.00,0.00 grip=off ticks=123456
+   steps=0,16000,-16000,0,0 tcp=307.20,67.40,264.00,0.00,0.00 grip=off ticks=123456
    isr_us=1.20/3.40 segments=27473 underruns=0 rejected=0 stalls=0
 ```
 (su una sola riga)
@@ -52,7 +52,7 @@ ok state=READY ref=1 moving=0 estop_in=0 queue=0 q=0.000,90.000,-90.000,0.000,0.
 | `moving` | 1 se in moto o con comandi in coda |
 | `q` | angoli comandati [°] |
 | `steps` | posizioni emesse dallo stepgen |
-| `tcp` | x,y,z [mm], pitch,roll [°]; `na` se non riferito |
+| `tcp` | x,y,z [mm], pitch,yaw della direzione di avvicinamento [°]; `na` se non riferito |
 | `isr_us` | durata media/massima dell'ISR [µs] |
 | `underruns` | coda vuota a metà movimento (deve restare 0) |
 | `rejected` | segmenti scartati per troppi passi (deve restare 0) |
@@ -68,7 +68,7 @@ ok state=READY ref=1 moving=0 estop_in=0 queue=0 q=0.000,90.000,-90.000,0.000,0.
 | 4 | occupato (in movimento) |
 | 5 | limite di un giunto |
 | 6 | posa irraggiungibile |
-| 7 | posa singolare (sull'asse della base) |
+| 7 | nessuna soluzione vicino a una singolarità |
 | 8 | e-stop attivo |
 | 9 | coda comandi piena |
 | 10 | errore interno |

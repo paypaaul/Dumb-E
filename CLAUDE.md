@@ -1,6 +1,7 @@
 # Dumb-E
 
-5-DOF 3D-printed arm (cycloidal joints) + servo gripper. ESP32 DOIT DevKit V1 (WROOM-32) on PCB `test-dumbev2`,
+5-DOF 3D-printed arm (20:1 cycloidal joints: base yaw, shoulder, elbow, forearm roll, wrist pitch; geometry
+from `hardware/cad/robot.step`, see `docs/kinematics.md`) + servo gripper. ESP32 DOIT DevKit V1 (WROOM-32) on PCB `test-dumbev2`,
 TMC2209 standalone (STEP/DIR/EN only). Firmware in C, **ESP-IDF v6.0.3**, target `esp32`.
 
 ## Layout

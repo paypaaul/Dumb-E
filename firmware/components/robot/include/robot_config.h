@@ -1,6 +1,7 @@
 /*
  * Mechanical configuration of the arm. Human-friendly units (mm, degrees) — converted at init.
- * The default values are PLACEHOLDERS: measure them on the real arm (see docs/kinematics.md).
+ * Geometry and gear ratio come from hardware/cad/robot.step; limits, speeds, microsteps and the park pose are
+ * still PLACEHOLDERS to verify on the real arm (see docs/kinematics.md).
  */
 #pragma once
 
@@ -26,7 +27,8 @@ typedef struct {
 } robot_joint_config_t;
 
 typedef struct {
-    float d1_mm, a1_mm, a2_mm, a3_mm, d5_mm; /* see kinematics.h */
+    float d1_mm, a2_mm, a3_mm;            /* see kinematics.h */
+    float tool_offset_mm, tool_length_mm; /* TCP relative to the wrist centre */
     robot_joint_config_t joints[KIN_NUM_JOINTS];
     float unreferenced_speed_scale; /* jog speed cap while not referenced (0..1] */
     uint16_t gripper_pulse_min_us, gripper_pulse_max_us;

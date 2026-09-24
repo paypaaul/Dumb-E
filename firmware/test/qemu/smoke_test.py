@@ -90,17 +90,18 @@ try:
     send("enable")
     s = send("movej 10 90 -90 0 0"); check("err 3" in s, "absolute move refused while not referenced")
     s = send("zero"); check(s.startswith("ok"), "zero at park pose")
-    s = status(); check("state=READY" in s and "steps=0,32000,-32000,0,0" in s, "park pose -> steps 0,32000,-32000,0,0")
+    s = status(); check("state=READY" in s and "steps=0,16000,-16000,0,0" in s, "park pose -> steps 0,16000,-16000,0,0")
     s = send("movej 10 80 -60 20 45 -v 100 -a 100"); check(s.startswith("ok"), "movej accepted")
     s = wait_idle()
-    # expected steps: deg * 32000/90
-    exp = [round(d * 32000 / 90) for d in (10, 80, -60, 20, 45)]
+    # expected steps: deg * 64000/360 (200 x 16 x 20:1)
+    exp = [round(d * 64000 / 360) for d in (10, 80, -60, 20, 45)]
     check("steps=" + ",".join(str(e) for e in exp) in s, f"final steps exactly {exp}")
     check("underruns=0" in s and "rejected=0" in s, "no underruns / rejected segments")
     s = send("movej 200 80 -60 20 45"); check("err 5" in s, "joint limit rejected")
-    s = send("movep 200 0 150 -90 0"); print("  (movep)", s)
-    if s.startswith("ok"):
-        s = wait_idle(); check("tcp=200.00,0.00,150.00,-90.00,0.00" in s or "tcp=200.0" in s, "movep reaches TCP")
+    s = send("movep 250 0 60 -90 0"); check(s.startswith("ok"), "movep accepted")
+    s = wait_idle(); m = re.search(r"tcp=([^ ]+)", s).group(1).split(",")
+    check(abs(float(m[0]) - 250) < 0.5 and abs(float(m[1])) < 0.5 and abs(float(m[2]) - 60) < 0.5
+          and abs(float(m[3]) + 90) < 0.2, "movep reaches TCP (250, 0, 60) pointing down")
     s = send("jog 1 -5"); check(s.startswith("ok"), "jog accepted"); wait_idle()
     # stop in the middle of a long move
     send("movej -100 150 -120 90 -170 -v 20")
@@ -109,7 +110,7 @@ try:
     s = wait_idle(); check("underruns=0" in s, "controlled stop without underrun")
     q = re.search(r" q=([^ ]+)", s).group(1).split(",")
     steps = re.search(r"steps=([^ ]+)", s).group(1).split(",")
-    exp = [round(float(x) * 32000 / 90) for x in q]
+    exp = [round(float(x) * 64000 / 360) for x in q]
     check(all(abs(int(a) - b) <= 1 for a, b in zip(steps, exp)), "stepgen position matches commanded q after stop")
     # estop
     send("movej 0 90 -90 0 0 -v 20"); time.sleep(0.5)
@@ -118,10 +119,10 @@ try:
     wait_idle()
     s = send("reset"); s = status(); check("state=READY" in s, "reset -> READY")
     s = send("park -v 100"); wait_idle(); s = status()
-    check("steps=0,32000,-32000,0,0" in s, "park returns exactly to park steps")
+    check("steps=0,16000,-16000,0,0" in s, "park returns exactly to park steps")
     s = send("grip 30"); check(s.startswith("ok"), "gripper command")
-    s = send("fk 0 90 -90 0 0"); check("x=210.000" in s and "z=250.000" in s, "fk of park pose")
-    s = send("ik 210 0 250 0 0"); check(re.search(r"q=-?0.00\d,90.00\d,-90.00\d,-?0.00\d,-?0.00\d", s) is not None, "ik of park pose (elbow up)")
+    s = send("fk 0 90 -90 0 0"); check("x=307.200" in s and "y=67.400" in s and "z=264.000" in s, "fk of park pose")
+    s = send("ik 307.2 67.4 264 0 0"); check(re.search(r"q=-?0.00\d,90.00\d,-90.00\d,-?0.00\d,-?0.00\d", s) is not None, "ik of park pose (elbow up)")
     s = status(); print("  final:", s)
     s = send("disable"); s = status(); check("state=DISABLED" in s and "ref=0" in s, "disable clears reference")
 finally:

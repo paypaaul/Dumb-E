@@ -34,7 +34,7 @@ typedef enum {
     ROBOT_ERR_BUSY,           /* the arm is moving */
     ROBOT_ERR_LIMIT,          /* target outside the joint limits */
     ROBOT_ERR_UNREACHABLE,    /* pose outside the workspace */
-    ROBOT_ERR_SINGULAR,       /* pose on the base axis */
+    ROBOT_ERR_SINGULAR,       /* no IK solution found near a singular configuration */
     ROBOT_ERR_ESTOP,          /* e-stop active */
     ROBOT_ERR_QUEUE_FULL,
     ROBOT_ERR_INTERNAL,
@@ -50,7 +50,7 @@ typedef struct {
     float q_deg[KIN_NUM_JOINTS];      /* commanded joint angles */
     int32_t steps[KIN_NUM_JOINTS];
     bool pose_valid;
-    kin_pose_t pose;                  /* TCP pose from FK (mm, rad) */
+    kin_pose_t pose;                  /* TCP position and approach direction from FK (mm, rad) */
     bool gripper_on;
     float gripper_pct;
     stepgen_stats_t stepgen;

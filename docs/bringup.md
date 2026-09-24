@@ -11,8 +11,8 @@ consigliati: [hardware/pcb/REVIEW.md](../hardware/pcb/REVIEW.md). Il pinout sta 
 | J1 base (U1) STEP / DIR | 26 / 27 | motore su H1 |
 | J2 spalla (U2) STEP / DIR | 12 / 13 | GPIO12 è strapping: vedi REVIEW.md |
 | J3 gomito (U3) STEP / DIR | 32 / 33 | motore su H3 |
-| J4 pitch polso (U4) STEP / DIR | 4 / 16 | motore su H4 |
-| J5 roll polso (U5) STEP / DIR | 18 / 19 | motore su H5 |
+| J4 roll avambraccio (U4) STEP / DIR | 4 / 16 | motore su H4 |
+| J5 pitch polso (U5) STEP / DIR | 18 / 19 | motore su H5 |
 | U6 | 35 / 34 | inutilizzabile (pin solo ingresso) |
 | EN driver (comune, attivo basso) | 25 | serve un pull-up 10 kΩ (sulle piazzole libere di Q3, vedi REVIEW.md) |
 | Servo gripper | 23 | connettore H7 (H8 = GPIO22, di riserva) |

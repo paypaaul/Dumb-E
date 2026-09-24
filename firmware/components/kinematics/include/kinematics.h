@@ -1,16 +1,23 @@
 /*
- * Dumb-E kinematics: 5-DOF arm (base yaw, shoulder pitch, elbow pitch, wrist pitch, wrist roll).
+ * Dumb-E kinematics: 5-DOF arm
+ *   J1 base yaw, J2 shoulder pitch, J3 elbow pitch, J4 forearm roll, J5 wrist pitch.
  *
  * Pure C, no ESP-IDF dependencies: compiled and unit-tested on the host.
  * Units: millimetres and radians everywhere. Conversion to degrees happens only at the user interface.
  *
- * Conventions (see docs/kinematics.md):
+ * Geometry (from hardware/cad/robot.step, see docs/kinematics.md):
  *  - Base frame: z up, x forward when q1 = 0, q1 positive counter-clockwise seen from above.
- *  - q2 is the upper-arm angle measured from the horizontal plane (positive = up).
- *  - q3 and q4 are relative to the previous link (0 = collinear, positive = raises the distal link).
- *  - Tool pitch = q2 + q3 + q4 (approach direction w.r.t. horizontal, -pi/2 = pointing down).
- *  - Tool roll = q5 (rotation about the approach axis).
- *  - All pitch axes are parallel and the arm plane contains the base axis (no lateral offsets).
+ *  - J2 and J3 axes are horizontal and perpendicular to the arm plane; the lateral offsets of the upper arm
+ *    cancel at the elbow, so the forearm axis always lies in the vertical plane of the base (azimuth q1).
+ *  - q2 is the upper-arm angle from the horizontal (positive = up); q3 is relative to the upper arm
+ *    (0 = straight, positive = raises the forearm). Forearm elevation phi = q2 + q3.
+ *  - J4 rolls about the forearm axis; J5 axis is perpendicular to the forearm and meets the J4 axis at the
+ *    wrist centre W. With q4 = q5 = 0 the tool points along the forearm and the J5 axis is the arm-plane
+ *    normal (left side seen from behind the arm).
+ *  - TCP = W + tool_offset * (J5 axis) + tool_length * (approach direction).
+ *
+ * A 5-DOF arm controls the TCP position and the approach direction (2 angles); the rotation of the gripper
+ * about its approach axis follows from them.
  */
 #pragma once
 
@@ -26,9 +33,9 @@ extern "C" {
 typedef enum {
     KIN_OK = 0,
     KIN_ERR_INVALID_ARG,
-    KIN_ERR_UNREACHABLE, /* target outside the workspace of the shoulder/elbow pair */
-    KIN_ERR_SINGULAR,    /* target on the base axis: base angle undefined */
-    KIN_ERR_JOINT_LIMIT, /* a solution exists but violates the joint limits */
+    KIN_ERR_UNREACHABLE,     /* wrist centre outside the workspace of the shoulder/elbow pair */
+    KIN_ERR_NO_CONVERGENCE,  /* the wrist-offset iteration did not converge (near a singularity) */
+    KIN_ERR_JOINT_LIMIT,     /* a solution exists but violates the joint limits */
 } kin_status_t;
 
 typedef enum {
@@ -36,23 +43,29 @@ typedef enum {
     KIN_ELBOW_DOWN,   /* elbow below the shoulder-wrist line (q3 >= 0) */
 } kin_elbow_t;
 
-/* Geometry and joint limits of the arm. */
 typedef struct {
-    float d1; /* base plane -> shoulder axis height [mm] */
-    float a1; /* horizontal offset base axis -> shoulder axis [mm] */
-    float a2; /* shoulder axis -> elbow axis [mm] */
-    float a3; /* elbow axis -> wrist pitch axis [mm] */
-    float d5; /* wrist pitch axis -> tool centre point along the approach axis [mm] */
+    float d1;          /* base plane -> shoulder axis height [mm] */
+    float a2;          /* shoulder axis -> elbow axis [mm] */
+    float a3;          /* elbow axis -> wrist centre (J4/J5 intersection) [mm] */
+    float tool_offset; /* TCP offset along the J5 axis [mm] */
+    float tool_length; /* TCP offset along the approach direction [mm] */
     float q_min[KIN_NUM_JOINTS]; /* [rad] */
     float q_max[KIN_NUM_JOINTS]; /* [rad] */
 } kin_model_t;
 
-/* Tool pose reachable by a 5-DOF arm: the approach axis always lies in the arm plane. */
+/* TCP position and approach direction. */
 typedef struct {
-    float x, y, z; /* tool centre point [mm] */
-    float pitch;   /* approach direction w.r.t. horizontal [rad] */
-    float roll;    /* rotation about the approach axis [rad] */
+    float x, y, z; /* [mm] */
+    float pitch;   /* elevation of the approach direction [rad], -pi/2 = pointing down */
+    float yaw;     /* azimuth of the approach direction [rad] (irrelevant when pointing straight up/down) */
 } kin_pose_t;
+
+typedef struct {
+    kin_elbow_t elbow;
+    /* Preferred joint values (usually the current position): picks the wrist flip closest to seed[3] and
+     * the base angle when the wrist is on the base axis. NULL = zeros. */
+    const float *seed;
+} kin_ik_options_t;
 
 /* Motor drive of one joint: joint angle <-> motor step position. */
 typedef struct {
@@ -60,17 +73,20 @@ typedef struct {
     bool invert;         /* true if positive motor steps decrease the joint angle */
 } kin_drive_t;
 
-/* Validates the model (positive lengths, ordered limits). */
 bool kin_model_is_valid(const kin_model_t *model);
 
-/* Forward kinematics. q[] is in radians. */
+/* Forward kinematics. q[] in radians. */
 kin_status_t kin_forward(const kin_model_t *model, const float q[KIN_NUM_JOINTS], kin_pose_t *out);
 
+/* Forward kinematics with vectors: TCP position, approach direction, J5 axis direction (unit vectors). */
+void kin_forward_vec(const kin_model_t *model, const float q[KIN_NUM_JOINTS], float tcp[3], float approach[3],
+                     float wrist_axis[3]);
+
 /*
- * Closed-form inverse kinematics. On KIN_OK or KIN_ERR_JOINT_LIMIT q_out holds the solution
- * (wrapped to (-pi, pi]); on KIN_ERR_JOINT_LIMIT *bad_joint (if not NULL) holds the offending index.
+ * Inverse kinematics. On KIN_OK or KIN_ERR_JOINT_LIMIT q_out holds the solution (wrapped to (-pi, pi]);
+ * on KIN_ERR_JOINT_LIMIT *bad_joint (if not NULL) holds the offending index.
  */
-kin_status_t kin_inverse(const kin_model_t *model, const kin_pose_t *target, kin_elbow_t elbow,
+kin_status_t kin_inverse(const kin_model_t *model, const kin_pose_t *target, const kin_ik_options_t *opts,
                          float q_out[KIN_NUM_JOINTS], int *bad_joint);
 
 /* Returns -1 if all joints are within limits, otherwise the index of the first violating joint. */

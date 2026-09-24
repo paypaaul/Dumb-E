@@ -10,8 +10,8 @@ const board_axis_pins_t board_axis_pins[BOARD_NUM_AXES] = {
     {.step = 26, .dir = 27}, /* J1 base         <- U1 (motor H1) */
     {.step = 12, .dir = 13}, /* J2 shoulder     <- U2 (motor H2); GPIO12 is a strapping pin, see REVIEW.md */
     {.step = 32, .dir = 33}, /* J3 elbow        <- U3 (motor H3) */
-    {.step = 4, .dir = 16},  /* J4 wrist pitch  <- U4 (motor H4) */
-    {.step = 18, .dir = 19}, /* J5 wrist roll   <- U5 (motor H5) */
+    {.step = 4, .dir = 16},  /* J4 forearm roll <- U4 (motor H4) */
+    {.step = 18, .dir = 19}, /* J5 wrist pitch  <- U5 (motor H5) */
 };
 
 esp_err_t board_init(void)

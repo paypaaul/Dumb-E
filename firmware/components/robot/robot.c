@@ -178,7 +178,13 @@ robot_err_t robot_init(void)
         return ROBOT_ERR_INTERNAL;
     }
 
-    s_r.model = (kin_model_t){.d1 = c->d1_mm, .a1 = c->a1_mm, .a2 = c->a2_mm, .a3 = c->a3_mm, .d5 = c->d5_mm};
+    s_r.model = (kin_model_t){
+        .d1 = c->d1_mm,
+        .a2 = c->a2_mm,
+        .a3 = c->a3_mm,
+        .tool_offset = c->tool_offset_mm,
+        .tool_length = c->tool_length_mm,
+    };
     motion_config_t mc = {.num_joints = KIN_NUM_JOINTS};
     static stepgen_axis_config_t axes[KIN_NUM_JOINTS];
     for (int i = 0; i < KIN_NUM_JOINTS; i++) {
@@ -315,8 +321,12 @@ robot_err_t robot_move_joints(const float q_deg[KIN_NUM_JOINTS], float speed_pct
 robot_err_t robot_move_pose(const kin_pose_t *pose, kin_elbow_t elbow, float speed_pct, float accel_pct,
                             int *bad_joint)
 {
+    /* Seed with the commanded position: picks the solution closest to where the arm is. */
+    motion_status_t ms;
+    motion_get_status(&ms);
+    const kin_ik_options_t opts = {.elbow = elbow, .seed = ms.q_cmd};
     float q[KIN_NUM_JOINTS];
-    const kin_status_t ks = kin_inverse(&s_r.model, pose, elbow, q, bad_joint);
+    const kin_status_t ks = kin_inverse(&s_r.model, pose, &opts, q, bad_joint);
     switch (ks) {
     case KIN_OK:
         break;
@@ -324,7 +334,7 @@ robot_err_t robot_move_pose(const kin_pose_t *pose, kin_elbow_t elbow, float spe
         return ROBOT_ERR_LIMIT;
     case KIN_ERR_UNREACHABLE:
         return ROBOT_ERR_UNREACHABLE;
-    case KIN_ERR_SINGULAR:
+    case KIN_ERR_NO_CONVERGENCE:
         return ROBOT_ERR_SINGULAR;
     default:
         return ROBOT_ERR_ARG;
@@ -497,7 +507,7 @@ const char *robot_err_str(robot_err_t err)
     case ROBOT_ERR_UNREACHABLE:
         return "unreachable";
     case ROBOT_ERR_SINGULAR:
-        return "singular pose";
+        return "no solution near a singularity";
     case ROBOT_ERR_ESTOP:
         return "e-stop active (reset)";
     case ROBOT_ERR_QUEUE_FULL:
