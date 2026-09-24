@@ -5,7 +5,7 @@ Parti meccaniche (stampate in 3D), elettronica e distinta base.
 - `pcb/` — PCB `test-dumbev2` (EasyEDA Pro): progetto, netlist, schematico PDF, Gerber, DXF.
   **Leggi [pcb/REVIEW.md](pcb/REVIEW.md)** prima di alimentarla: contiene pinout, problemi e interventi.
 - `cad/` — modelli e STL (da aggiungere).
-- BOM — da aggiungere.
+- [BOM.md](BOM.md) — distinta base (bozza).
 
 ## Giunti
 
