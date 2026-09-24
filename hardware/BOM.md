@@ -23,20 +23,25 @@ Stato: bozza. **TBD** = dato da completare. Le quantità del PCB vengono dalla n
 
 | Q.tà | Componente | Link | Note |
 |---|---|---|---|
-| 1 | Alimentatore 24 V | https://amzn.eu/d/03CJn3oo | potenza **TBD**; consigliati ≥ 150 W |
-| 1 | Step-down DC-DC 24 → 5 V | https://amzn.eu/d/0fcRmi94 | corrente **TBD**; servono ≥ 3 A (servo + ESP32 + ventole) |
+| 1 | Alimentatore switching 24 V 15 A 360 W (ingresso 110/220 V selezionabile) | https://amzn.eu/d/03CJn3oo | **metti il selettore su 220 V prima di collegarlo**; protezioni: sovratensione, sovraccarico, corto |
+| 1 | Step-down DC-DC 8–40 V → 5 V 5 A (25 W), sincrono | https://amzn.eu/d/0fcRmi94 | ingresso rosso/nero, uscita giallo/nero → CN5; non usarlo a lungo vicino ai 5 A |
 | 1 | Presa/interruttore con fusibile | https://amzn.eu/d/01dDmsnM | lato rete o 24 V? valore fusibile **TBD** |
 | TBD | Ventole 5 V per i TMC2209 | TBD | dimensione e corrente **TBD** |
 | 1 | Portafusibile + fusibile 5 A sulla linea 24 V motori | da scegliere | consigliato (vedi stima sotto) |
 | 1 | Elettrolitico 470–1000 µF 10 V vicino ai servo | da scegliere | consigliato |
 
-### Stima dei consumi (da verificare con i dati reali)
+### Bilancio dei consumi
 
 | Carico | Stima |
 |---|---|
-| 5 × NEMA17 (corrente dall'alimentazione a 24 V, non di fase) | ~0,3–0,7 A ciascuno → ~3 A di picco |
-| 5 V: ESP32 ~0,25 A + servo gripper (stallo fino a ~2,5 A) + ventole | ~3 A → ~0,8 A a 24 V |
-| **Totale lato 24 V** | **~4 A → alimentatore ≥ 100 W, consigliato 150 W** |
+| 5 × NEMA17 (corrente assorbita dai 24 V, non di fase) | ~0,3–0,7 A ciascuno → ~3 A di picco |
+| 5 V: ESP32 ~0,25 A + servo gripper (stallo fino a ~2,5 A) + ventole | ~3 A di picco → 60 % dello step-down (5 A) ✓ |
+| **Totale lato 24 V** | **~4 A di picco su 15 A disponibili** ✓ |
+
+L'alimentatore è ampiamente sovradimensionato: va bene, ma proprio per questo può erogare 15 A dentro un guasto
+prima che la sua protezione intervenga. Sul PCB la pista che collega i due morsetti motori è da 0,25 mm
+(vedi `pcb/REVIEW.md`), quindi **serve un fusibile da 5 A** (ritardato) sul positivo 24 V verso i driver.
+Se il pulsante con fusibile è sul lato rete (230 V) protegge l'alimentatore, non la linea dei motori.
 
 ## Attuatori
 
