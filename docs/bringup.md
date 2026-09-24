@@ -14,7 +14,7 @@ consigliati: [hardware/pcb/REVIEW.md](../hardware/pcb/REVIEW.md). Il pinout sta 
 | J4 pitch polso (U4) STEP / DIR | 4 / 16 | motore su H4 |
 | J5 roll polso (U5) STEP / DIR | 18 / 19 | motore su H5 |
 | U6 | 35 / 34 | inutilizzabile (pin solo ingresso) |
-| EN driver (comune, attivo basso) | 25 | serve un pull-up 10 kΩ (tra gate e source di Q3) |
+| EN driver (comune, attivo basso) | 25 | serve un pull-up 10 kΩ (sulle piazzole libere di Q3, vedi REVIEW.md) |
 | Servo gripper | 23 | connettore H7 (H8 = GPIO22, di riserva) |
 | LED di stato | 2 | LED della DevKit |
 | E-stop (opzionale) | 21 | H12 pin 1; pulsante NC verso GND; da abilitare in menuconfig |
@@ -48,8 +48,9 @@ Se colleghi i motori a zoccoli diversi, cambia l'assegnazione in `board.c`.
 Fai le prime prove **con i motori staccati dalla meccanica** (o con il braccio smontato).
 
 1. Prima del primo avvio: pull-up su EN e jumper MS1/MS2. Flash e monitor: `idf.py -p <porta> flash monitor`.
-   La scheda deve avviarsi anche con i driver alimentati (GPIO12). Al boot: `status` → `state=DISABLED ref=0`,
-   LED dei driver spenti.
+   La scheda deve avviarsi anche con i driver alimentati (GPIO12). Al boot: `status` → `state=DISABLED ref=0`.
+   I LED della scheda (LED1…7) non sono montati: per verificare EN misura con il tester la tensione sul
+   pin EN di un driver (≈ 3,3 V = disabilitato, 0 V dopo `enable`).
 2. `config`: verifica microstep e rapporti.
 3. `enable`, poi `zero`: `status` → `state=READY`, passi della posa di parcheggio.
 4. Un giunto per volta: `jog 1 10 -v 20`, `jog 1 -10 -v 20`. Controlla il verso (altrimenti `invert`).

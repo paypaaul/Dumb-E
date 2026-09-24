@@ -15,7 +15,17 @@ montata. Il firmware usa il pinout qui sotto (`firmware/components/board/board.c
 - **CN5** (e CN1…CN4, H14): ingresso/uscite +5V. **Non c'è un regolatore 5 V**: va fornito da fuori.
 - **H7 / H8**: connettori servo (GND, +5V, segnale).
 - **H11 / H12**: espansioni a 4 pin; **H13…H16**: uscite VCC, +5V, GND, +3V3.
-- **Q3** (AO3401) + LED1…6: LED accesi quando i driver sono abilitati; **LED7**: presenza +5V.
+- **Q3** (AO3401) + LED1…6 (R4…R9): LED accesi quando i driver sono abilitati; **LED7** (R10): presenza +5V.
+  **Sulla scheda attuale questi LED non sono montati**, e la scheda è pensata per funzionare anche senza (vedi
+  sotto).
+
+### LED non montati
+
+LED1…7, le loro resistenze e Q3 sono solo indicatori: stanno sulla linea EN (gate di Q3) e sulle alimentazioni
++3V3/+5V, e nessun altro circuito dipende da loro. Verificato sulla netlist: senza di loro la linea EN collega
+solo GPIO25 e gli EN dei sei driver, e +5V/+3V3 restano invariati. Il firmware non li usa (il LED di stato è quello
+della DevKit su GPIO2). Nella prossima revisione conviene tenerli come opzionali ("DNP"), senza collegarci
+funzioni essenziali: il pull-up di EN, per esempio, deve essere una resistenza a sé, non dipendere da Q3.
 
 ## Pinout (DOIT DevKit V1)
 
@@ -27,7 +37,7 @@ montata. Il firmware usa il pinout qui sotto (`firmware/components/board/board.c
 | U4 STEP / DIR | 4 / 16 | J4 pitch polso | GPIO16 non esiste sulle DevKit WROVER |
 | U5 STEP / DIR | 18 / 19 | J5 roll polso | |
 | U6 STEP / DIR | **35 / 34** | — | **inutilizzabile**: pin solo ingresso |
-| EN (tutti) + gate Q3 | 25 | | nessun pull-up (problema 2) |
+| EN (tutti) + gate Q3 | 25 | | nessun pull-up (problema 2); Q3/LED non montati |
 | Servo H7 / H8 | 23 / 22 | gripper su H7 | |
 | H11 | 15, 2, 3 (RX0), 1 (TX0) | | 2 e 15 strapping, 1/3 console |
 | H12 | 21, 5, 17, 14 | e-stop su 21 (opzionale) | 5 strapping |
@@ -41,8 +51,11 @@ montata. Il firmware usa il pinout qui sotto (`firmware/components/board/board.c
    30 mil; tra i due c'è solo una pista da **10 mil lunga 54 mm**. Con un solo morsetto collegato, metà della
    corrente passa da quella pista, che può scaldarsi fino a interrompersi.
 2. **Pull-up su EN.** La linea EN (GPIO25) non ha resistenze: durante accensione, reset e flash è flottante,
-   quindi i driver (e i LED di Q3) sono in uno stato indefinito e i motori possono attivarsi.
-   **Intervento:** resistenza da **10 kΩ tra gate e source di Q3** (la source è già a +3V3, il gate è la linea EN).
+   quindi i driver sono in uno stato indefinito e i motori possono attivarsi.
+   **Intervento:** resistenza da **10 kΩ tra le piazzole di gate e source di Q3** (la source è a +3V3, il gate è
+   la linea EN). Q3 non è montato, quindi le piazzole SOT-23 sono libere: una resistenza 0603/0805 ci sta tra i
+   due pad, oppure un pezzo di resistenza THT. In alternativa: 10 kΩ tra un pin +3V3 di H16 e la linea EN su un
+   pin EN di un driver (pin 16 del modulo).
 3. **GPIO12 (STEP di U2).** È il pin che all'avvio sceglie la tensione della flash: se è alto la scheda non parte.
    Normalmente il pull-down interno lo tiene basso. Verifica che la scheda si avvii e si flashi con i driver montati
    e alimentati. Se non parte, la soluzione standard sui moduli WROOM-32 (flash a 3,3 V) è
@@ -71,7 +84,8 @@ montata. Il firmware usa il pinout qui sotto (`firmware/components/board/board.c
 - Simbolo corretto (ESP32 DevKit V1 30 pin) al posto di quello dell'H2.
 - U6 su due uscite libere (per esempio 14 e 21, oggi su H12) oppure eliminarlo.
 - STEP di U2 lontano da GPIO12.
-- Pull-up 10 kΩ su EN.
+- Pull-up 10 kΩ su EN come componente dedicato (non affidato a Q3).
+- LED e Q3 marcati come opzionali (DNP): la scheda deve funzionare identica con o senza.
 - VCC con piste larghe (≥ 80 mil) o pour, un solo ingresso motori con fusibile, protezione da inversione e TVS.
 - Regolatore 5 V dedicato ai servo, separato da quello dell'ESP32.
 - PDN_UART collegata a una UART dell'ESP32 (con resistenza da 1 kΩ) e MS1/MS2 separati per gli indirizzi.
