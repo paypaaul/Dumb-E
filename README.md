@@ -1,5 +1,7 @@
 # Dumb-E
 
+<p align="center"><img src="docs/img/hero.png" alt="Dumb-E: braccio robotico a 5 assi" width="100%"></p>
+
 Braccio robotico a 5 gradi di libertà + gripper a 3 dita, stampato in 3D, con riduttori cicloidali 20:1 su ogni giunto.
 
 - **Controller**: ESP32 (DevKit WROOM-32), firmware in C su ESP-IDF v6.0.3
