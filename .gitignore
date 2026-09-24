@@ -1,3 +1,21 @@
+# ESP-IDF build outputs
 build/
 sdkconfig
 sdkconfig.old
+managed_components/
+
+# Host test builds
+build-host/
+
+# Editors / OS
+.DS_Store
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+.cache/
+*.swp
+*~
+
+# Python tooling
+__pycache__/
+*.pyc
+.venv/
