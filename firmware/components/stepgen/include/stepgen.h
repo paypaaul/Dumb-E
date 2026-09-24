@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    int step_gpio; /* must be < 32 (all STEP pins are driven with a single register write) */
+    int step_gpio; /* any output GPIO (0-33) */
     int dir_gpio;  /* high = positive direction */
 } stepgen_axis_config_t;
 

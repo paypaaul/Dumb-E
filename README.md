@@ -7,8 +7,8 @@ Braccio robotico a 5 gradi di libertà + gripper, stampato in 3D, con riduttori 
 - **Giunti**: J1 base (yaw), J2 spalla, J3 gomito, J4 pitch polso, J5 roll polso
 
 > Stato: fondamenta del firmware (Fase 1). Geometria, rapporti di riduzione e limiti in
-> `firmware/components/robot/robot_config.c` sono **segnaposto** da misurare; la mappa pin in
-> `firmware/components/board/board.c` è provvisoria finché non viene revisionato il PCB.
+> `firmware/components/robot/robot_config.c` sono **segnaposto** da misurare. La mappa pin segue il PCB
+> `test-dumbev2`: prima di alimentarlo leggi [hardware/pcb/REVIEW.md](hardware/pcb/REVIEW.md).
 
 ## Struttura
 

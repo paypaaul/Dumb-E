@@ -27,9 +27,12 @@ typedef struct {
     stepgen_dda_t dda;
     segment_ring_t ring;
     uint32_t num_axes;
-    uint32_t step_bit[STEPGEN_MAX_AXES]; /* GPIO out register bit of each STEP pin */
+    /* STEP pins are written through two registers: GPIO0-31 (out) and GPIO32-39 (out1). */
+    uint32_t step_bit_lo[STEPGEN_MAX_AXES];
+    uint32_t step_bit_hi[STEPGEN_MAX_AXES];
     uint32_t dir_gpio[STEPGEN_MAX_AXES];
-    uint32_t all_step_bits;
+    uint32_t all_step_lo;
+    uint32_t all_step_hi;
     uint32_t pending_steps; /* axis mask raised at the start of the next tick */
     uint32_t min_pulse_cycles;
     TaskHandle_t consumer;
@@ -54,15 +57,31 @@ static int64_t s_wd_last_change_us;
 #define DEBUG_PIN_SET(level) ((void)0)
 #endif
 
-static inline uint32_t IRAM_ATTR axes_to_gpio_bits(uint32_t axis_mask)
+static inline void IRAM_ATTR raise_steps(uint32_t axis_mask)
 {
-    uint32_t bits = 0;
+    uint32_t lo = 0, hi = 0;
     for (uint32_t i = 0; i < s_sg.num_axes; i++) {
         if (axis_mask & (1u << i)) {
-            bits |= s_sg.step_bit[i];
+            lo |= s_sg.step_bit_lo[i];
+            hi |= s_sg.step_bit_hi[i];
         }
     }
-    return bits;
+    if (lo) {
+        GPIO.out_w1ts = lo;
+    }
+    if (hi) {
+        GPIO.out1_w1ts.val = hi;
+    }
+}
+
+static inline void IRAM_ATTR lower_steps(void)
+{
+    if (s_sg.all_step_lo) {
+        GPIO.out_w1tc = s_sg.all_step_lo;
+    }
+    if (s_sg.all_step_hi) {
+        GPIO.out1_w1tc.val = s_sg.all_step_hi;
+    }
 }
 
 static bool IRAM_ATTR on_tick(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
@@ -76,7 +95,7 @@ static bool IRAM_ATTR on_tick(gptimer_handle_t timer, const gptimer_alarm_event_
     /* 1. Rising edges for the steps computed during the previous tick. */
     const uint32_t raised = s_sg.pending_steps;
     if (raised) {
-        GPIO.out_w1ts = axes_to_gpio_bits(raised);
+        raise_steps(raised);
     }
 
     /* 2. Compute the next tick (and load the next segment at a boundary). */
@@ -119,7 +138,7 @@ static bool IRAM_ATTR on_tick(gptimer_handle_t timer, const gptimer_alarm_event_
     if (raised) {
         while ((uint32_t)(esp_cpu_get_cycle_count() - start) < s_sg.min_pulse_cycles) {
         }
-        GPIO.out_w1tc = s_sg.all_step_bits;
+        lower_steps();
     }
 
     /* 4. Direction pins, written at least one tick before the next rising edge. */
@@ -167,12 +186,17 @@ esp_err_t stepgen_init(const stepgen_config_t *config, TaskHandle_t consumer_tas
     for (uint32_t i = 0; i < config->num_axes; i++) {
         const int step = config->axes[i].step_gpio;
         const int dir = config->axes[i].dir_gpio;
-        ESP_RETURN_ON_FALSE(step >= 0 && step < 32 && GPIO_IS_VALID_OUTPUT_GPIO(step), ESP_ERR_INVALID_ARG, TAG,
-                            "axis %" PRIu32 ": STEP gpio %d must be an output < 32", i, step);
+        ESP_RETURN_ON_FALSE(GPIO_IS_VALID_OUTPUT_GPIO(step), ESP_ERR_INVALID_ARG, TAG,
+                            "axis %" PRIu32 ": STEP gpio %d is not an output", i, step);
         ESP_RETURN_ON_FALSE(GPIO_IS_VALID_OUTPUT_GPIO(dir), ESP_ERR_INVALID_ARG, TAG,
                             "axis %" PRIu32 ": DIR gpio %d is not an output", i, dir);
-        s_sg.step_bit[i] = 1u << step;
-        s_sg.all_step_bits |= 1u << step;
+        if (step < 32) {
+            s_sg.step_bit_lo[i] = 1u << step;
+        } else {
+            s_sg.step_bit_hi[i] = 1u << (step - 32);
+        }
+        s_sg.all_step_lo |= s_sg.step_bit_lo[i];
+        s_sg.all_step_hi |= s_sg.step_bit_hi[i];
         s_sg.dir_gpio[i] = (uint32_t)dir;
         out_mask |= (1ull << step) | (1ull << dir);
     }

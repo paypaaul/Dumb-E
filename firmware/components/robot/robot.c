@@ -67,7 +67,8 @@ static esp_err_t estop_init(void)
     const gpio_config_t io = {
         .pin_bit_mask = 1ull << CONFIG_DUMBE_ESTOP_GPIO,
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE, /* external pull-up (34-39 have none) */
+        /* GPIO34-39 have no internal pull-up: use an external one on those pins. */
+        .pull_up_en = GPIO_IS_VALID_OUTPUT_GPIO(CONFIG_DUMBE_ESTOP_GPIO) ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_ANYEDGE,
     };

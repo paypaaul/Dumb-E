@@ -4,7 +4,7 @@
 |---|---|---|---|
 | **0 — Igiene e tooling** | monorepo, ESP-IDF v6.0.3 fissato, `sdkconfig.defaults`, CI, README e docs | CI verde | fatto |
 | **1 — Fondamenta del moto** | stepgen, pianificazione MOVEJ sincronizzata, cinematica 5-DOF + test, stati, gripper, protocollo v0 | test verdi, build ok, prove al banco | software fatto; prove al banco da fare |
-| 1b — PCB | revisione dello schematico, pinout definitivo in `board.c` | pinout verificato | in attesa dei file |
+| 1b — PCB | revisione dello schematico, pinout definitivo in `board.c` | pinout verificato | fatto (vedi `hardware/pcb/REVIEW.md`); rework EN da fare |
 | 2 — Riferimento e calibrazione | parametri e calibrazione in NVS, procedura di zero guidata, jog migliorato, **CLI Python** per script e sequenze | zero ripetibile entro una tolleranza misurata | |
 | 2b — Upgrade hardware consigliati | finecorsa o sensori hall + homing; linea PDN_UART dei TMC2209 → corrente, corrente di mantenimento, SpreadCycle/StealthChop, diagnostica e rilevamento del reset del driver | homing ripetibile, config dei driver verificata | |
 | 3 — Cinematica completa | MOVEL cartesiano (IK a 1 kHz), validazione del percorso prima del moto, profili S-curve, jog cartesiano, TCP configurabile | movimenti fluidi, errore misurato | |

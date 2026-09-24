@@ -42,7 +42,8 @@ Partendo da `acc = T/2` si ottengono esattamente `n` passi per segmento, spaziat
 Massimo un passo per tick, cioè 40.000 passi/s per asse.
 
 Sequenza di ogni tick:
-1. alza gli STEP calcolati al tick precedente (una sola scrittura su `GPIO.out_w1ts`);
+1. alza gli STEP calcolati al tick precedente (una scrittura su `GPIO.out_w1ts` per i GPIO 0–31 e una su
+   `GPIO.out1_w1ts` per i GPIO 32–33);
 2. calcola il tick successivo, caricando il segmento seguente quando serve;
 3. attende la larghezza minima dell'impulso (1 µs, misurata con CCOUNT) e abbassa gli STEP;
 4. scrive i DIR cambiati: il fronte di salita successivo arriva almeno un tick dopo (setup time);

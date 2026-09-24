@@ -4,14 +4,14 @@ menu "Dumb-E robot"
         bool "Enable e-stop input"
         default n
         help
-            Enable only when the e-stop circuit is wired (normally-closed button to GND with an external
-            pull-up): an unconnected input-only pin floats and would trigger random stops.
+            Enable only when the e-stop button is wired: normally-closed contact between the input and GND
+            (default: GPIO21 on header H12). The internal pull-up is enabled on pins that have one.
 
     config DUMBE_ESTOP_GPIO
         int "E-stop GPIO"
         depends on DUMBE_ESTOP_ENABLE
         range 0 39
-        default 34
+        default 21
 
     config DUMBE_ESTOP_ACTIVE_HIGH
         bool "E-stop is active when the input is high"

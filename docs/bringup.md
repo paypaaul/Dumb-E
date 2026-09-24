@@ -1,36 +1,35 @@
 # Bring-up: cablaggio e prove al banco
 
-> **Mappa pin provvisoria.** È pensata per un ESP32 DevKit WROOM-32 e verrà sostituita dal pinout del PCB
-> del progetto dopo la sua revisione. L'unico file da cambiare è `firmware/components/board/board.c`
-> (e `board.h`).
+Scheda: PCB `test-dumbev2` con DOIT ESP32 DevKit V1 (30 pin). Revisione completa, problemi e interventi
+consigliati: [hardware/pcb/REVIEW.md](../hardware/pcb/REVIEW.md). Il pinout sta solo in
+`firmware/components/board/board.c`.
 
 ## Mappa pin
 
 | Segnale | GPIO | Note |
 |---|---|---|
-| J1 base STEP / DIR | 25 / 33 | tutti gli STEP < 32 (una sola scrittura di registro) |
-| J2 spalla STEP / DIR | 26 / 32 | |
-| J3 gomito STEP / DIR | 27 / 14 | 14 è un pin JTAG: niente JTAG esterno |
-| J4 pitch polso STEP / DIR | 19 / 18 | |
-| J5 roll polso STEP / DIR | 23 / 4 | |
-| EN driver (comune, attivo basso) | 13 | **pull-up esterno 10 kΩ verso 3V3** |
-| Servo gripper | 22 | |
-| LED di stato | 2 | LED della scheda |
-| E-stop | 34 | solo ingresso; pulsante NC verso GND + pull-up esterno 10 kΩ; da abilitare in menuconfig |
-| Riserve | 35, 36, 39 (finecorsa), 16/17 (UART TMC2209), 21 (I2C) | |
+| J1 base (U1) STEP / DIR | 26 / 27 | motore su H1 |
+| J2 spalla (U2) STEP / DIR | 12 / 13 | GPIO12 è strapping: vedi REVIEW.md |
+| J3 gomito (U3) STEP / DIR | 32 / 33 | motore su H3 |
+| J4 pitch polso (U4) STEP / DIR | 4 / 16 | motore su H4 |
+| J5 roll polso (U5) STEP / DIR | 18 / 19 | motore su H5 |
+| U6 | 35 / 34 | inutilizzabile (pin solo ingresso) |
+| EN driver (comune, attivo basso) | 25 | serve un pull-up 10 kΩ (tra gate e source di Q3) |
+| Servo gripper | 23 | connettore H7 (H8 = GPIO22, di riserva) |
+| LED di stato | 2 | LED della DevKit |
+| E-stop (opzionale) | 21 | H12 pin 1; pulsante NC verso GND; da abilitare in menuconfig |
 
-Pin da evitare sull'ESP32 classico: 0, 2, 5, 12, 15 (strapping; il 12 alto al boot porta la flash a 1,8 V e
-la scheda non parte), 6–11 (flash), 1/3 (console). 34–39 sono solo ingressi e non hanno pull-up interni.
+Se colleghi i motori a zoccoli diversi, cambia l'assegnazione in `board.c`.
 
 ## Note di cablaggio
 
+- **Alimenta entrambi i morsetti motori U7 e U9** (vedi REVIEW.md).
 - **EN con pull-up**: così i driver restano disabilitati durante boot, reset e flash.
-- **TMC2209 standalone**: MS1/MS2 fissano i microstep (devono coincidere con `microsteps` in config), la
-  corrente si regola col trimmer VREF. Valuta SpreadCycle (pin SPREAD alto) sui giunti caricati dalla
-  gravità.
-- Alimentazione motori a 24 V con condensatore elettrolitico vicino a ogni driver; GND in comune con l'ESP32.
+- **TMC2209 standalone**: i jumper H10 (MS1) e H9 (MS2) fissano i microstep per tutti i driver e devono
+  coincidere con `microsteps` in config; la corrente si regola col trimmer VREF.
+- Alimentazione motori a 24 V; il 5 V (CN5) va fornito da un alimentatore esterno da almeno 3 A.
 - **Mai** collegare o scollegare un motore con il driver alimentato.
-- Il servo del gripper va alimentato separatamente dalla logica (GND in comune).
+- Non collegare nulla a TX0/RX0 su H11 (seriale del protocollo).
 - I cicloidali sono reversibili: con i driver disabilitati il braccio può cadere. La posa di parcheggio deve
   essere stabile.
 
@@ -48,11 +47,13 @@ la scheda non parte), 6–11 (flash), 1/3 (console). 34–39 sono solo ingressi 
 
 Fai le prime prove **con i motori staccati dalla meccanica** (o con il braccio smontato).
 
-1. Flash e monitor: `idf.py -p <porta> flash monitor`. Al boot: `status` → `state=DISABLED ref=0`.
+1. Prima del primo avvio: pull-up su EN e jumper MS1/MS2. Flash e monitor: `idf.py -p <porta> flash monitor`.
+   La scheda deve avviarsi anche con i driver alimentati (GPIO12). Al boot: `status` → `state=DISABLED ref=0`,
+   LED dei driver spenti.
 2. `config`: verifica microstep e rapporti.
 3. `enable`, poi `zero`: `status` → `state=READY`, passi della posa di parcheggio.
 4. Un giunto per volta: `jog 1 10 -v 20`, `jog 1 -10 -v 20`. Controlla il verso (altrimenti `invert`).
-5. Analizzatore logico su STEP/DIR di un asse:
+5. Analizzatore logico su STEP/DIR di un asse (anche J2 su GPIO12 e J3 su GPIO32):
    - impulso STEP ≥ 1 µs;
    - DIR stabile almeno un tick (25 µs) prima del primo STEP dopo un cambio;
    - frequenza massima coerente con la velocità richiesta.
