@@ -1,0 +1,5 @@
+# The DDA runs inside the cache-safe step ISR: keep it in IRAM.
+[mapping:stepgen]
+archive: libstepgen.a
+entries:
+    stepgen_dda (noflash)

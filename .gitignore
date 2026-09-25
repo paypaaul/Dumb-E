@@ -1,3 +1,28 @@
+# ESP-IDF build outputs
 build/
 sdkconfig
 sdkconfig.old
+managed_components/
+
+# Host test builds
+build-host/
+build-qemu/
+
+# Editors / OS
+.DS_Store
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+.cache/
+*.swp
+*~
+
+# Python tooling
+__pycache__/
+*.pyc
+.venv/
+
+# CAD models: the cycloidal drives are derived from purchased SweepDynamics models (not redistributable)
+hardware/cad/*.step
+hardware/cad/*.stp
+hardware/cad/*.f3d
+hardware/cad/*.stl

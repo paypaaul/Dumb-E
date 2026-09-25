@@ -1,0 +1,9 @@
+menu "Dumb-E network"
+
+    config DUMBE_NET_ENABLE
+        bool "Enable WiFi"
+        default y
+        help
+            Disable to run without the radio (bench tests, QEMU: the emulator has no WiFi).
+
+endmenu
