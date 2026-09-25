@@ -21,6 +21,7 @@ CI (`.github/workflows/ci.yml`) runs host tests + firmware build.
 
 ## Rules
 - Code, comments, commits in English; docs in Italian.
+- Commits: author Paolo Vezzini <megampaul@icloud.com>; no Co-Authored-By / Claude-Session trailers.
 - Pure-C files (`kinematics.c`, `motion_profile.c`, `stepgen_dda.c`, `segment_ring.h`) must not include
   ESP-IDF headers. Units inside: mm, rad, s; degrees only in `comms`.
 - Step ISR (`stepgen.c`): integer only, IRAM, no flash calls (`CONFIG_GPTIMER_ISR_CACHE_SAFE=y`). Keep it that way.
